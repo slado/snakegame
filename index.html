@@ -1,210 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake Game</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-            background-color: #fff;
-        }
-
-        canvas {
-            border: 1px solid #222;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            max-width: 100%;
-            max-height: 100%;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Game</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    canvas {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 100%;
+      max-height: 100%;
+      background-color: white;
+    }
+  </style>
 </head>
-
 <body>
-    <canvas id="game" width="400" height="400"></canvas>
-    <script>
-        // JavaScript code goes here
-        const canvas = document.getElementById('game');
-        const ctx = canvas.getContext('2d');
-        const gridSize = 20;
-        const numRows = Math.floor(window.innerHeight / gridSize);
-        const numCols = Math.floor(window.innerWidth / gridSize);
-        canvas.height = numRows * gridSize;
-        canvas.width = numCols * gridSize;
-
-
-
-
-        let snake = [{ x: 5, y: 5 }];
-        let dx = 1;
-        let dy = 0;
-        let mouse = generateMouse();
-
-        const snakeHeadSvg = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="green" width="20px" height="20px">
-  <path d="M0 0h24v24H0z" fill="none"/>
-  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
-</svg>
-`;
-
-        const mouseSvg = `
-<svg fill="#000000" height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
-	 viewBox="0 0 197.654 197.654" xml:space="preserve">
-<g>
-	<g>
-		<g>
-			<path d="M38.807,147.588c-6.811,0-12.352,5.541-12.352,12.352c0,6.811,5.541,12.352,12.352,12.352
-				c6.811,0,12.352-5.541,12.352-12.352C51.159,153.129,45.619,147.588,38.807,147.588z M38.807,164.057
-				c-2.27,0-4.117-1.845-4.117-4.117c0-2.272,1.847-4.117,4.117-4.117c2.27,0,4.117,1.845,4.117,4.117
-				C42.924,162.212,41.077,164.057,38.807,164.057z"/>
-			<path d="M173.144,76.994c-17.959-20.285-24.378-37.832-18.562-50.747c5.661-12.573,21.658-18.013,28.57-18.013
-				c2.274,0,4.117-1.842,4.117-4.117S185.426,0,183.152,0c-10.398,0-29.054,7.265-36.079,22.866
-				c-5.052,11.218-5.7,30.663,19.907,59.589c16.487,18.624,23.327,33.719,19.782,43.654c-3.29,9.218-14.965,11.925-17.011,12.335
-				c-7.14-16.349-23.859-31.37-61.23-31.37c-11.461,0-24.435,2.396-37.733,6.956c-5.14-10.88-15.028-17.197-24.67-15.319
-				c-6.112,1.186-11.174,5.388-14.252,11.837c-2.881,6.031-3.681,13.393-2.256,20.727c0.205,1.057,0.456,2.111,0.752,3.144
-				C12.387,146.835,1.75,159.995,1.75,169.951c0,24.346,43.002,27.703,89.471,27.703c44.782,0,83.456,0,83.456-33.706
-				c0-5.262-0.531-11.406-2.199-17.673c4.753-1.121,17.65-5.21,22.018-17.34C199.223,115.811,192.038,98.337,173.144,76.994z
-				 M91.223,189.42c-34.874,0-81.236-2.019-81.236-19.469c0-6.087,8.516-17.86,27.539-30.433l2.76-1.826l-1.188-3.088
-				c-0.603-1.568-1.075-3.216-1.401-4.898c-1.091-5.617-0.523-11.162,1.602-15.609c1.926-4.033,4.905-6.631,8.391-7.306
-				c0.595-0.117,1.194-0.173,1.797-0.173c6.029,0,12.275,5.641,15.064,13.932l1.355,4.025l3.983-1.48
-				c13.701-5.094,27.06-7.788,38.634-7.788c47.874,0.001,57.921,26.45,57.921,48.64C166.444,188.238,139.263,189.42,91.223,189.42z"
-				/>
-		</g>
-	</g>
-</g>
-</svg>`;
-
-        const snakeHeadImg = new Image();
-        snakeHeadImg.src = 'data:image/svg+xml,' + encodeURIComponent(snakeHeadSvg);
-
-        const mouseImg = new Image();
-        mouseImg.src = 'data:image/svg+xml,' + encodeURIComponent(mouseSvg);
-
-        function gameLoop() {
-            setTimeout(() => {
-                requestAnimationFrame(gameLoop);
-                update();
-                draw();
-            }, 100);
-        }
-
-        function update() {
-            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
-
-            if (head.x === mouse.x && head.y === mouse.y) {
-                mouse = generateMouse();
-            } else {
-                snake.pop();
-            }
-
-            snake.unshift(head);
-
-            if (head.x < 0 || head.y < 0 || head.x >= numCols || head.y >= numRows || collidesWithSelf(head)) {
-                snake = [{ x: 5, y: 5 }];
-                dx = 1;
-                dy = 0;
-            }
-        }
-
-        function draw() {
-            ctx.fillStyle = "#fff";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            for (let i = 0; i < snake.length; i++) {
-                const segment = snake[i];
-                if (i === 0) {
-                    ctx.drawImage(snakeHeadImg, segment.x * tileSize, segment.y * tileSize, tileSize, tileSize);
-                } else {
-                    ctx.fillStyle = "#00a000";
-                    ctx.fillRect(segment.x * tileSize, segment.y * tileSize, tileSize, tileSize);
-                }
-            }
-
-            ctx.drawImage(mouseImg, mouse.x * tileSize, mouse.y * tileSize, tileSize, tileSize);
-        }
-
-        function generateMouse() {
-            return {
-                x: Math.floor(Math.random() * numCols),
-                y: Math.floor(Math.random() * numRows),
-            };
-        }
-
-        function collidesWithSelf(head) {
-            for (const segment of snake.slice(1)) {
-                if (segment.x === head.x && segment.y === head.y) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        document.addEventListener("keydown", (event) => {
-            if (event.key === "ArrowUp" && dy === 0) {
-                dx = 0;
-                dy = -1;
-            } else if (event.key === "ArrowDown" && dy === 0) {
-                dx = 0;
-                dy = 1;
-            } else if (event.key === "ArrowLeft" && dx === 0) {
-                dx = -1;
-                dy = 0;
-            } else if (event.key === "ArrowRight" && dx === 0) {
-                dx = 1;
-                dy = 0;
-            }
-        });
-
-        let lastTouchX = 0;
-        let lastTouchY = 0;
-
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            lastTouchX = e.touches[0].clientX;
-            lastTouchY = e.touches[0].clientY;
-        });
-
-        canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            const currentTouchX = e.touches[0].clientX;
-            const currentTouchY = e.touches[0].clientY;
-
-            const diffX = currentTouchX - lastTouchX;
-            const diffY = currentTouchY - lastTouchY;
-
-            if (Math.abs(diffX) > Math.abs(diffY)) {
-                if (diffX > 0 && dx !== -gridSize) {
-                    dx = gridSize;
-                    dy = 0;
-                } else if (diffX < 0 && dx !== gridSize) {
-                    dx = -gridSize;
-                    dy = 0;
-                }
-            } else {
-                if (diffY > 0 && dy !== -gridSize) {
-                    dx = 0;
-                    dy = gridSize;
-                } else if (diffY < 0 && dy !== gridSize) {
-                    dx = 0;
-                    dy = -gridSize;
-                }
-            }
-
-            lastTouchX = currentTouchX;
-            lastTouchY = currentTouchY;
-        });
-
-
-        gameLoop();
-    </script>
+  <canvas id="game" width="400" height="400"></canvas>
+  <script src="snake.js"></script>
 </body>
-
 </html>
